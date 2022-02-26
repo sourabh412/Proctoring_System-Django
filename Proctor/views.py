@@ -811,7 +811,8 @@ def Recordupdateform(request, stu=None, id=None):
                     updateList = i.Nottype.split(" ")
                     for j in updateList:
                         if j == "":
-                            updateList.remove(j)  
+                            updateList.remove(j)
+                    break
             if updateList in locals():        
                 return render(request, 'recordupdateform.html',{'list':updateList,'stu':stu,'id':id})
             else:
