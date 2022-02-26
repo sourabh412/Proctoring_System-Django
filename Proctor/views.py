@@ -1,5 +1,4 @@
 from datetime import date, datetime
-from email import message
 from itertools import chain
 from django.http import HttpResponse, request
 from django.shortcuts import redirect, render
@@ -8,7 +7,6 @@ from django.core.mail import send_mail
 from django.conf import settings
 import string
 import random
-from django.core.mail import EmailMultiAlternatives
 
 from proctoring.settings import EMAIL_HOST_USER
 from .models import (Notifications, Student, Proctor, Announcements, 
@@ -533,22 +531,14 @@ def Manage(request):
             Nottype=updateList,
             Notification=recipients)
             notnoti.save()
-            # send_mail(
-            #     'Record Update',
-            #     'Please click on the link below to update your info\
-            #     \nhttp://127.0.0.1:8000/Recordupdateform',
-            #     settings.EMAIL_HOST_USER,
-            #     reciveList,
-            #     fail_silently=True
-            # )
-
-            subject, from_email, to = 'new', settings.EMAIL_HOST_USER, reciveList
-            text_content = 'This is an important message.'
-            html_content = '<strong style="color:red;">www.google.com</strong>'
-            msg = EmailMultiAlternatives(subject, html_content, from_email, to)
-            msg.attach_alternative(html_content, "text/html")
-            msg.send()
-
+            send_mail(
+                'Record Update',
+                'Please click on the link below to update your info\
+                \nhttp://127.0.0.1:8000/Recordupdateform',
+                settings.EMAIL_HOST_USER,
+                reciveList,
+                fail_silently=True
+            )
             messages.success(request, "Updateform mailed successfully")
             return render(request, 'Home/proctor/manage.html',context)
     return render(request, 'Home/proctor/manage.html',context)
