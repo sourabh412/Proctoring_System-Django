@@ -542,11 +542,11 @@ def Manage(request):
             #     fail_silently=True
             # )
 
-            subject, from_email, to = 'hello', settings.EMAIL_HOST_USER, reciveList
+            subject, from_email, to = 'new', settings.EMAIL_HOST_USER, reciveList
             text_content = 'This is an important message.'
-            html_content = '<strong style="color:red;">http://127.0.0.1:8000/Recordupdateform</strong>'
-            msg = EmailMultiAlternatives(subject, text_content, from_email, to)
-            msg.attach_alternative(html_content, "text/html")
+            html_content = '<strong style="color:red;">www.google.com</strong>'
+            msg = message.EmailMessage(subject, html_content, from_email, to)
+            msg.content_subtype = "html"  # Main content is now text/html
             msg.send()
 
             messages.success(request, "Updateform mailed successfully")
