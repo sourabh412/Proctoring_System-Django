@@ -16,7 +16,7 @@
     </div>
     {% endfor %}
     {% if list %}
-    <form class="m-3" action="details" method="post">
+    <form class="m-3" action="{{stu}}" method="post">
       <input type="hidden" name="stu" value="{{stu}}">
       <input type="hidden" name="id" value="{{id}}">
       <h3>Update form</h3>
