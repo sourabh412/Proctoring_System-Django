@@ -551,6 +551,8 @@ def Manage(request):
                 settings.EMAIL_HOST_USER,
                 reciveList
             )
+            mail.attach_alternative(html_content,"text/html")
+            mail.send()
 
             messages.success(request, "Updateform mailed successfully")
             return render(request, 'Home/proctor/manage.html',context)
