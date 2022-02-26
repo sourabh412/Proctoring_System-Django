@@ -7,6 +7,14 @@
     <title>Document</title>
 </head>
 <body>
-    <a href="www.google.com" style="color: purple;text-decoration: none;">Google</a>
+    {% if code %}
+    <p>A password change request has been made by your account</p>
+    <p>Ignore the mail and do not share the code if not requested by you.</p>
+    <p>Secret code to change the password:-</p>
+    <h2 style="font-size:60px;line-height:1em;margin-top:15px;margin-bottom:0;font-weight:300;color:#5596e6">{{code}}</h2>
+    {% else %}
+    <p>Please click on the link below to update your info</p>
+    <h5>https://bmsce-ise-proc.herokuapp.com/Recordupdateform</h5>
+    {% endif %}
 </body>
 </html>

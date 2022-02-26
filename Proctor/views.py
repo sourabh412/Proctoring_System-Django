@@ -546,7 +546,7 @@ def Manage(request):
             html_content = render_to_string("mail.html")
             text_content = strip_tags(html_content)
             mail = EmailMultiAlternatives(
-                "testing",
+                'Record Update',
                 text_content,
                 settings.EMAIL_HOST_USER,
                 reciveList
@@ -850,16 +850,28 @@ def forgotPass(request):
             for i in range(0,3):
                 secCode += random.choice(string.ascii_letters) + random.choice(string.digits)
             request.session['secCode'] = secCode
-            send_mail(
+            # send_mail(
+            #     'Password change confirmation',
+            #     f'A password change request has been made by your account\
+            #     \nIgnore the mail and do not share the code if not requested by you.\
+            #     \nSecret code to change the password:-\
+            #     \n{secCode}',
+            #     settings.EMAIL_HOST_USER,
+            #     [request.session['MailId']],
+            #     fail_silently=True
+            # )
+
+            html_content = render_to_string("mail.html",{'code':secCode})
+            text_content = strip_tags(html_content)
+            mail = EmailMultiAlternatives(
                 'Password change confirmation',
-                f'A password change request has been made by your account\
-                \nIgnore the mail and do not share the code if not requested by you.\
-                \nSecret code to change the password:-\
-                \n{secCode}',
+                text_content,
                 settings.EMAIL_HOST_USER,
-                [request.session['MailId']],
-                fail_silently=True
+                [request.session['MailId']]
             )
+            mail.attach_alternative(html_content,"text/html")
+            mail.send()
+
             print(secCode)
             return render(request, 'forgotPass.html', {'email':request.session['MailId']})    
         if request.POST.get('secCode') == request.session['secCode']:
