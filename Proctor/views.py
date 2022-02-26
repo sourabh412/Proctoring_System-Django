@@ -7,6 +7,9 @@ from django.core.mail import send_mail
 from django.conf import settings
 import string
 import random
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 from proctoring.settings import EMAIL_HOST_USER
 from .models import (Notifications, Student, Proctor, Announcements, 
@@ -531,14 +534,24 @@ def Manage(request):
             Nottype=updateList,
             Notification=recipients)
             notnoti.save()
-            send_mail(
-                'Record Update',
-                'Please click on the link below to update your info\
-                \nhttp://127.0.0.1:8000/Recordupdateform',
+            # send_mail(
+            #     'Record Update',
+            #     'Please click on the link below to update your info\
+            #     \nhttp://127.0.0.1:8000/Recordupdateform',
+            #     settings.EMAIL_HOST_USER,
+            #     reciveList,
+            #     fail_silently=True
+            # )
+
+            html_content = render_to_string("mail.html")
+            text_content = strip_tags(html_content)
+            mail = EmailMultiAlternatives(
+                "testing",
+                text_content,
                 settings.EMAIL_HOST_USER,
-                reciveList,
-                fail_silently=True
+                reciveList
             )
+
             messages.success(request, "Updateform mailed successfully")
             return render(request, 'Home/proctor/manage.html',context)
     return render(request, 'Home/proctor/manage.html',context)
