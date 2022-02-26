@@ -545,8 +545,8 @@ def Manage(request):
             subject, from_email, to = 'new', settings.EMAIL_HOST_USER, reciveList
             text_content = 'This is an important message.'
             html_content = '<strong style="color:red;">www.google.com</strong>'
-            msg = message.EmailMessage(subject, html_content, from_email, to)
-            msg.content_subtype = "html"  # Main content is now text/html
+            msg = EmailMultiAlternatives(subject, html_content, from_email, to)
+            msg.attach_alternative(html_content, "text/html")
             msg.send()
 
             messages.success(request, "Updateform mailed successfully")
