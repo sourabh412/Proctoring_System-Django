@@ -806,7 +806,7 @@ def Recordupdateform(request, stu=None, id=None):
         form = Notifications.objects.filter(Proctor=(f'{temp.Proctor}Forms'),Date__year=date.today().year,Date__month=date.today().month,Date__day=date.today().day)
         if form:
             for i in form:
-                if (str(i.Date).split(" ")[1].replace(":","").split(".")[0] == str(id)) and (str(temp.EmailId) in i.Notification):
+                if (str(i.Date).split(" ")[1].replace(":","").split(".")[0] == str(id)) and (str(temp.EmailId) in str(i.Notification).split(" ")):
                     print("yes")
                     updateList = i.Nottype.split(" ")
                     for j in updateList:
