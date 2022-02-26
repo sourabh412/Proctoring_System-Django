@@ -846,7 +846,7 @@ def forgotPass(request):
             details = list(chain(Student.objects.filter(EmailId = request.session['MailId']),Proctor.objects.filter(EmailId = request.session['MailId'])))
             if details == []:
                 messages.error(request, "Sorry, No such account exists")
-                return render(request, 'forgotPass.html')
+                return render(request, 'forgotpass.html')
             for i in range(0,3):
                 secCode += random.choice(string.ascii_letters) + random.choice(string.digits)
             request.session['secCode'] = secCode
@@ -873,18 +873,18 @@ def forgotPass(request):
             mail.send()
 
             print(secCode)
-            return render(request, 'forgotPass.html', {'email':request.session['MailId']})    
+            return render(request, 'forgotpass.html', {'email':request.session['MailId']})    
         if request.POST.get('secCode') == request.session['secCode']:
             details = list(chain(Student.objects.filter(EmailId = request.session['MailId']),Proctor.objects.filter(EmailId = request.session['MailId'])))
             details[0].Password = request.POST.get('NewPass')
             details[0].save()
             messages.success(request, "Password updated successfully")
-            return render(request, 'forgotPass.html', {'secCode':request.POST.get('secCode')})
+            return render(request, 'forgotpass.html', {'secCode':request.POST.get('secCode')})
         else:
             messages.error(request, "Something went wrong!!!Please try again")
-            return render(request, 'forgotPass.html')
+            return render(request, 'forgotpass.html')
     else:
-        return render(request, 'forgotPass.html')
+        return render(request, 'forgotpass.html')
 
 def supplementary(request):
     if 'sUserMailId' not in request.session:
