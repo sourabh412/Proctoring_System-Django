@@ -806,7 +806,7 @@ def Recordupdateform(request, stu=None, id=None):
         form = Notifications.objects.filter(Proctor=(f'{temp.Proctor}Forms'),Date__year=date.today().year,Date__month=date.today().month,Date__day=date.today().day)
         if form:
             for i in form:
-                if str(i.Date).split(" ")[1].replace(":","").split(".")[0] == str(id):
+                if (str(i.Date).split(" ")[1].replace(":","").split(".")[0] == str(id)) and (temp.EmailId in i.Notification):
                     print("yes")
                     updateList = i.Nottype.split(" ")
                     for j in updateList:
@@ -814,7 +814,7 @@ def Recordupdateform(request, stu=None, id=None):
                             updateList.remove(j)
                     break
             return render(request, 'recordupdateform.html',{'list':updateList,'stu':stu,'id':id})
-        return HttpResponse('<a href="sLogout">form not available</a>')
+        return HttpResponse('<p>form not available</p>')
 
 def ViewActivity(request):
     activity = Activities.objects.filter(USN=request.POST.get('USN'),Actname=request.POST.get('Actname'),Actpts=0,Reject="N")
