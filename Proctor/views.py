@@ -812,9 +812,10 @@ def Recordupdateform(request, stu=None, id=None):
                     for j in updateList:
                         if j == "":
                             updateList.remove(j)  
-                    return render(request, 'recordupdateform.html',{'list':updateList,'stu':stu,'id':id})
-                else:
-                    return HttpResponse('<p>form not available</p>')
+            if updateList in locals():        
+                return render(request, 'recordupdateform.html',{'list':updateList,'stu':stu,'id':id})
+            else:
+                return HttpResponse('<p>form not available</p>')
         return HttpResponse('<p>form not available</p>')
 
 def ViewActivity(request):
