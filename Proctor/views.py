@@ -546,7 +546,7 @@ def Manage(request):
             #     reciveList,
             #     fail_silently=True
             # )
-            for i in len(reciveList):
+            for i in range(0,len(reciveList)):
                 student = Student.objects.get(EmailId=reciveList[i])
                 stu = student.USN
                 html_content = render_to_string("mail.html",{'stu':stu,'id':id})
