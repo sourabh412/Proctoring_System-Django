@@ -537,7 +537,7 @@ def Manage(request):
             Nottype=updateList,
             Notification=recipients)
             notnoti.save()
-            id = int(str(notnoti.Date).split(" ")[1].replace(":",""))
+            id = int(str(notnoti.Date).split(" ")[1].replace(":","").split(".")[0])
             # send_mail(
             #     'Record Update',
             #     'Please click on the link below to update your info\
@@ -806,7 +806,7 @@ def Recordupdateform(request, stu=None, id=None):
         form = Notifications.objects.filter(Proctor=(f'{temp.Proctor}Forms'),Date__year=date.today().year,Date__month=date.today().month,Date__day=date.today().day)
         if form:
             for i in form:
-                if int(str(i.Notification).split(" ")[1].replace(":","")) == id:
+                if int(str(i.Notification).split(" ")[1].replace(":","").split(".")[0]) == id:
                     print("yes")
                     updateList = i.Nottype.split(" ")
                     for j in updateList:
