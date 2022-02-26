@@ -71,11 +71,11 @@ def SignupSuccess(request):
             messages.error(request, "Invalid Role Key")
             return render(request, 'Login/Signup.html')
 
-def SignupDetails(request, stu=None):
+def SignupDetails(request, stun=None):
     if 'sUserMailId' in request.session:
         newObject = Student.objects.get(EmailId=request.session['sUserMailId'], Password=request.session['sUserPassword'])
     else:
-        newObject = Student.objects.get(USN=stu)
+        newObject = Student.objects.get(USN=stun)
     if request.method == 'POST':
         if request.POST.get('name'):
             newObject.Name = request.POST.get('name').title()
