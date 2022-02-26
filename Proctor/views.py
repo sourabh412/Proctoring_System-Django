@@ -71,8 +71,11 @@ def SignupSuccess(request):
             messages.error(request, "Invalid Role Key")
             return render(request, 'Login/Signup.html')
 
-def SignupDetails(request):
-    newObject = Student.objects.get(EmailId=request.session['sUserMailId'], Password=request.session['sUserPassword'])
+def SignupDetails(request, stu=None):
+    if 'sUserMailId' in request.session:
+        newObject = Student.objects.get(EmailId=request.session['sUserMailId'], Password=request.session['sUserPassword'])
+    else:
+        newObject = Student.objects.get(USN=stu)
     if request.method == 'POST':
         if request.POST.get('name'):
             newObject.Name = request.POST.get('name').title()
@@ -116,7 +119,7 @@ def SignupDetails(request):
             Notification=request.POST.get('USN').upper())
             newNot.save()
         else:
-            newNot = Notifications(EmailId=request.session['sUserMailId'],
+            newNot = Notifications(EmailId=newObject.EmailId,
             Proctor=newObject.Proctor,
             Nottype="Record update",
             Notification=newObject.USN)
@@ -534,6 +537,7 @@ def Manage(request):
             Nottype=updateList,
             Notification=recipients)
             notnoti.save()
+            id = int(str(notnoti.Date).split(" ")[1].replace(":",""))
             # send_mail(
             #     'Record Update',
             #     'Please click on the link below to update your info\
@@ -542,17 +546,19 @@ def Manage(request):
             #     reciveList,
             #     fail_silently=True
             # )
-
-            html_content = render_to_string("mail.html")
-            text_content = strip_tags(html_content)
-            mail = EmailMultiAlternatives(
-                'Record Update',
-                text_content,
-                settings.EMAIL_HOST_USER,
-                reciveList
-            )
-            mail.attach_alternative(html_content,"text/html")
-            mail.send()
+            for i in len(reciveList):
+                student = Student.objects.get(EmailId=reciveList[i])
+                stu = student.USN
+                html_content = render_to_string("mail.html",{'stu':stu,'id':id})
+                text_content = strip_tags(html_content)
+                mail = EmailMultiAlternatives(
+                    'Record Update',
+                    text_content,
+                    settings.EMAIL_HOST_USER,
+                    [reciveList[i]]
+                )
+                mail.attach_alternative(html_content,"text/html")
+                mail.send()
 
             messages.success(request, "Updateform mailed successfully")
             return render(request, 'Home/proctor/manage.html',context)
@@ -794,34 +800,21 @@ def pLogout(request):
         del request.session['NoofStudents']
         return redirect('Login1')
 
-def Recordupdateform(request):
-    if 'sUserMailId' in request.session:
-        temp = Student.objects.get(EmailId=request.session['sUserMailId'])
+def Recordupdateform(request, stu=None, id=None):
+    if id and stu:
+        temp = Student.objects.get(USN=stu)
         form = Notifications.objects.filter(Proctor=(f'{temp.Proctor}Forms'),Date__year=date.today().year,Date__month=date.today().month,Date__day=date.today().day)
         if form:
             for i in form:
-                if request.session['sUserMailId'] in i.Notification:
+                if int(str(i.Notification).split(" ")[1].replace(":","")) == id:
                     print("yes")
                     updateList = i.Nottype.split(" ")
                     for j in updateList:
                         if j == "":
                             updateList.remove(j)
                     break
-            return render(request, 'recordupdateform.html',{'list':updateList})
+            return render(request, 'recordupdateform.html',{'list':updateList,'stu':stu,'id':id})
         return HttpResponse('<a href="sLogout">form not available</a>')
-    else:
-        if request.method == 'POST':
-            enteremailid = request.POST.get("mailid")
-            request.session['sUserMailId'] = enteremailid
-            enterpass = request.POST.get("password")
-            request.session['sUserPassword'] = enterpass
-            if Student.objects.filter(EmailId=request.session['sUserMailId'], Password=request.session['sUserPassword']):
-                return redirect('Recordupdateform')
-            else:
-                del request.session['sUserMailId']
-                del request.session['sUserPassword']
-                messages.warning(request,'Invalid Credentials')
-        return render(request, 'recordupdateform.html')
 
 def ViewActivity(request):
     activity = Activities.objects.filter(USN=request.POST.get('USN'),Actname=request.POST.get('Actname'),Actpts=0,Reject="N")
