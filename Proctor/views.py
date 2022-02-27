@@ -128,7 +128,7 @@ def SignupDetails(request, stun=None, *args, **kwargs):
                 newNot.save()
             else:
                 messages.success(request, 'Record updated successfully')
-                return redirect('Recordupdateform')
+                return HttpResponse("<h1>Incorrect password</h1>")
     messages.success(request, 'Record updated successfully')
     return redirect('Login2')
 
