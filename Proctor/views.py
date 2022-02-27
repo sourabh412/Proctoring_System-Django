@@ -95,7 +95,7 @@ def SignupDetails(request, stun=None, *args, **kwargs):
             newObject.DoB = request.POST.get('dob')
         if request.POST.get('phone'):
             newObject.Phone = request.POST.get('phone')
-        newObject.save()
+
         if request.POST.get('proctor') and request.POST.get('branch'):
             a = Semrec1(EmailId=request.session['sUserMailId'],USN=request.POST.get('USN').upper(),Name=request.POST.get('name').capitalize())
             b = Semrec2(EmailId=request.session['sUserMailId'],USN=request.POST.get('USN').upper(),Name=request.POST.get('name').capitalize())
@@ -119,13 +119,18 @@ def SignupDetails(request, stun=None, *args, **kwargs):
             Notification=request.POST.get('USN').upper())
             newNot.save()
         else:
-            newNot = Notifications(EmailId=newObject.EmailId,
-            Proctor=newObject.Proctor,
-            Nottype="Record update",
-            Notification=newObject.USN)
-            newNot.save()
+            if newObject.Password == request.POST.get('password'):
+                newObject.save()
+                newNot = Notifications(EmailId=newObject.EmailId,
+                Proctor=newObject.Proctor,
+                Nottype="Record update",
+                Notification=newObject.USN)
+                newNot.save()
+            else:
+                messages.success(request, 'Record updated successfully')
+                return redirect('Recordupdateform')
     messages.success(request, 'Record updated successfully')
-    return redirect('StudentLogin')
+    return redirect('Login2')
 
 def StudentLogin(request):
     if request.method == 'POST':

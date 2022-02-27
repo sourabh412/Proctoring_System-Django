@@ -69,6 +69,8 @@
         <input type="text" class="form-control" id="name" required placeholder="{{i}}" name="name" aria-describedby="basic-addon2">
         {% endif %}
         {% endfor %}
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" required placeholder="password" name="password" aria-describedby="basic-addon2">
         <button class="btn btn-primary m-3" type="submit" method="post">Update</button>
     </form>
     {% endif %}
