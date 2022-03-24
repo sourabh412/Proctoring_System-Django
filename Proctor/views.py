@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from email import message
 from itertools import chain
 from django.http import HttpResponse, request
 from django.shortcuts import redirect, render
@@ -7,9 +8,6 @@ from django.core.mail import send_mail
 from django.conf import settings
 import string
 import random
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 
 from proctoring.settings import EMAIL_HOST_USER
 from .models import (Notifications, Student, Proctor, Announcements, 
@@ -71,11 +69,8 @@ def SignupSuccess(request):
             messages.error(request, "Invalid Role Key")
             return render(request, 'Login/Signup.html')
 
-def SignupDetails(request, stun=None, *args, **kwargs):
-    if 'sUserMailId' in request.session:
-        newObject = Student.objects.get(EmailId=request.session['sUserMailId'], Password=request.session['sUserPassword'])
-    else:
-        newObject = Student.objects.get(USN=stun)
+def SignupDetails(request):
+    newObject = Student.objects.get(EmailId=request.session['sUserMailId'], Password=request.session['sUserPassword'])
     if request.method == 'POST':
         if request.POST.get('name'):
             newObject.Name = request.POST.get('name').title()
@@ -95,7 +90,7 @@ def SignupDetails(request, stun=None, *args, **kwargs):
             newObject.DoB = request.POST.get('dob')
         if request.POST.get('phone'):
             newObject.Phone = request.POST.get('phone')
-
+        newObject.save()
         if request.POST.get('proctor') and request.POST.get('branch'):
             a = Semrec1(EmailId=request.session['sUserMailId'],USN=request.POST.get('USN').upper(),Name=request.POST.get('name').capitalize())
             b = Semrec2(EmailId=request.session['sUserMailId'],USN=request.POST.get('USN').upper(),Name=request.POST.get('name').capitalize())
@@ -119,18 +114,13 @@ def SignupDetails(request, stun=None, *args, **kwargs):
             Notification=request.POST.get('USN').upper())
             newNot.save()
         else:
-            if newObject.Password == request.POST.get('password'):
-                newObject.save()
-                newNot = Notifications(EmailId=newObject.EmailId,
-                Proctor=newObject.Proctor,
-                Nottype="Record update",
-                Notification=newObject.USN)
-                newNot.save()
-            else:
-                messages.success(request, 'Record updated successfully')
-                return HttpResponse("<h1>Incorrect password</h1>")
+            newNot = Notifications(EmailId=request.session['sUserMailId'],
+            Proctor=newObject.Proctor,
+            Nottype="Record update",
+            Notification=newObject.USN)
+            newNot.save()
     messages.success(request, 'Record updated successfully')
-    return redirect('Login2')
+    return redirect('StudentLogin')
 
 def StudentLogin(request):
     if request.method == 'POST':
@@ -542,29 +532,14 @@ def Manage(request):
             Nottype=updateList,
             Notification=recipients)
             notnoti.save()
-            id = int(str(notnoti.Date).split(" ")[1].replace(":","").split(".")[0])
-            # send_mail(
-            #     'Record Update',
-            #     'Please click on the link below to update your info\
-            #     \nhttp://127.0.0.1:8000/Recordupdateform',
-            #     settings.EMAIL_HOST_USER,
-            #     reciveList,
-            #     fail_silently=True
-            # )
-            for i in range(0,len(reciveList)):
-                student = Student.objects.get(EmailId=reciveList[i])
-                stu = student.USN
-                html_content = render_to_string("mail.html",{'stu':stu,'id':id})
-                text_content = strip_tags(html_content)
-                mail = EmailMultiAlternatives(
-                    'Record Update',
-                    text_content,
-                    settings.EMAIL_HOST_USER,
-                    [reciveList[i]]
-                )
-                mail.attach_alternative(html_content,"text/html")
-                mail.send()
-
+            send_mail(
+                'Record Update',
+                'Please click on the link below to update your info\
+                \nhttp://127.0.0.1:8000/Recordupdateform',
+                settings.EMAIL_HOST_USER,
+                reciveList,
+                fail_silently=True
+            )
             messages.success(request, "Updateform mailed successfully")
             return render(request, 'Home/proctor/manage.html',context)
     return render(request, 'Home/proctor/manage.html',context)
@@ -805,26 +780,34 @@ def pLogout(request):
         del request.session['NoofStudents']
         return redirect('Login1')
 
-def Recordupdateform(request, stu=None, id=None):
-    if id and stu:
-        temp = Student.objects.get(USN=stu)
+def Recordupdateform(request):
+    if 'sUserMailId' in request.session:
+        temp = Student.objects.get(EmailId=request.session['sUserMailId'])
         form = Notifications.objects.filter(Proctor=(f'{temp.Proctor}Forms'),Date__year=date.today().year,Date__month=date.today().month,Date__day=date.today().day)
         if form:
             for i in form:
-                if((str(i.Date).split(" ")[1].replace(":","").split(".")[0] == str(id)) and (temp.EmailId in i.Notification)):
+                if request.session['sUserMailId'] in i.Notification:
                     print("yes")
                     updateList = i.Nottype.split(" ")
                     for j in updateList:
                         if j == "":
                             updateList.remove(j)
                     break
-            try:
-                updateList   
-                return render(request, 'recordupdateform.html',{'list':updateList,'stu':stu,'id':id})
-            except:
-                updateList = None
-                return HttpResponse('<p>form not available</p>')
-        return HttpResponse('<p>form not available</p>')
+            return render(request, 'recordupdateform.html',{'list':updateList})
+        return HttpResponse('<a href="sLogout">form not available</a>')
+    else:
+        if request.method == 'POST':
+            enteremailid = request.POST.get("mailid")
+            request.session['sUserMailId'] = enteremailid
+            enterpass = request.POST.get("password")
+            request.session['sUserPassword'] = enterpass
+            if Student.objects.filter(EmailId=request.session['sUserMailId'], Password=request.session['sUserPassword']):
+                return redirect('Recordupdateform')
+            else:
+                del request.session['sUserMailId']
+                del request.session['sUserPassword']
+                messages.warning(request,'Invalid Credentials')
+        return render(request, 'recordupdateform.html')
 
 def ViewActivity(request):
     activity = Activities.objects.filter(USN=request.POST.get('USN'),Actname=request.POST.get('Actname'),Actpts=0,Reject="N")
@@ -849,45 +832,33 @@ def forgotPass(request):
             details = list(chain(Student.objects.filter(EmailId = request.session['MailId']),Proctor.objects.filter(EmailId = request.session['MailId'])))
             if details == []:
                 messages.error(request, "Sorry, No such account exists")
-                return render(request, 'forgotpass.html')
+                return render(request, 'forgotPass.html')
             for i in range(0,3):
                 secCode += random.choice(string.ascii_letters) + random.choice(string.digits)
             request.session['secCode'] = secCode
-            # send_mail(
-            #     'Password change confirmation',
-            #     f'A password change request has been made by your account\
-            #     \nIgnore the mail and do not share the code if not requested by you.\
-            #     \nSecret code to change the password:-\
-            #     \n{secCode}',
-            #     settings.EMAIL_HOST_USER,
-            #     [request.session['MailId']],
-            #     fail_silently=True
-            # )
-
-            html_content = render_to_string("mail.html",{'code':secCode})
-            text_content = strip_tags(html_content)
-            mail = EmailMultiAlternatives(
+            send_mail(
                 'Password change confirmation',
-                text_content,
+                f'A password change request has been made by your account\
+                \nIgnore the mail and do not share the code if not requested by you.\
+                \nSecret code to change the password:-\
+                \n{secCode}',
                 settings.EMAIL_HOST_USER,
-                [request.session['MailId']]
+                [request.session['MailId']],
+                fail_silently=True
             )
-            mail.attach_alternative(html_content,"text/html")
-            mail.send()
-
             print(secCode)
-            return render(request, 'forgotpass.html', {'email':request.session['MailId']})    
+            return render(request, 'forgotPass.html', {'email':request.session['MailId']})    
         if request.POST.get('secCode') == request.session['secCode']:
             details = list(chain(Student.objects.filter(EmailId = request.session['MailId']),Proctor.objects.filter(EmailId = request.session['MailId'])))
             details[0].Password = request.POST.get('NewPass')
             details[0].save()
             messages.success(request, "Password updated successfully")
-            return render(request, 'forgotpass.html', {'secCode':request.POST.get('secCode')})
+            return render(request, 'forgotPass.html', {'secCode':request.POST.get('secCode')})
         else:
             messages.error(request, "Something went wrong!!!Please try again")
-            return render(request, 'forgotpass.html')
+            return render(request, 'forgotPass.html')
     else:
-        return render(request, 'forgotpass.html')
+        return render(request, 'forgotPass.html')
 
 def supplementary(request):
     if 'sUserMailId' not in request.session:

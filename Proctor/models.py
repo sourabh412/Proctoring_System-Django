@@ -9,7 +9,7 @@ class Student(models.Model):
     USN = models.CharField(max_length=10, blank = True, null = True)
     DoB = models.CharField(max_length=12, blank = True, null = True)
     Blood = models.CharField(max_length=3, blank = True, null = True)
-    Phone = models.BigIntegerField(blank = True, null = True)
+    Phone = models.IntegerField(blank = True, null = True)
     EmailId = models.EmailField(max_length=100)
     Name = models.TextField(max_length=70, blank = True, null = True)
     Proctor = models.TextField(max_length=70, blank = True, null = True)
